@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include "test2.h"
 #include "NiFpga.h"
@@ -12,8 +13,7 @@
 
 static void test_status(NiFpga_Status sts) {
     if(NiFpga_IsError(sts)) {
-        printf("ERR - NiFpga_Status = %d\n", sts);
-        exit(-1);
+        syslog(LOG_USER, "ERR - NiFpga_Status = %d\n", sts);
     }
 }
 
@@ -48,12 +48,15 @@ int init(char* bitfile, char *resource) {
 
     int rc = 0;
 
+    openlog(NULL, LOG_PID | LOG_CONS, LOG_USER);
+
     if(bitfile == NULL || resource == NULL) {
-        printf("bitfile and resource args must be non-null\n");
+        syslog(LOG_USER, "bitfile and resource args must be non-null\n");
+        closelog();
         return 1;
     }
     else {
-        printf("bitfile = %s, resource = %s\n", bitfile, resource);
+        syslog(LOG_USER, "bitfile = %s, resource = %s\n", bitfile, resource);
     }
 
     NiFpga_Status sts = 0;
@@ -74,9 +77,9 @@ int init(char* bitfile, char *resource) {
 
     uint32_t loop_cnt = 0;
     while(reg_val != 1) {
-        printf("Waiting for FPGA...\n");
+        syslog(LOG_USER, "Waiting for FPGA...\n");
         if(++loop_cnt >= 10) {
-            printf("Timed out waiting for FPGA\n");
+            syslog(LOG_USER, "Timed out waiting for FPGA\n");
             rc = -1;
             goto bail;
         }
@@ -84,16 +87,16 @@ int init(char* bitfile, char *resource) {
         sts =  NiFpga_ReadU8(sess, reg_offs, &reg_val);
         test_status(sts);
     }
-    printf("FPGA is running\n");
+    syslog(LOG_USER, "FPGA is running\n");
 
     sts = NiFpga_FindRegister(sess, "FPGA_SW Version_RB", &reg_offs);
     test_status(sts);
     sts = NiFpga_ReadU8(sess, reg_offs, &reg_val);
-    printf("FPGA_SW Version_RB = %x\n", reg_val);
+    syslog(LOG_USER, "FPGA_SW Version_RB = %x\n", reg_val);
 
     uint32_t fifo_num = 0;
     const char *fifo_name = "IQD1.6-Host";
-    printf("Fifo name = %s\n", fifo_name);
+    syslog(LOG_USER, "Fifo name = %s\n", fifo_name);
     sts = NiFpga_FindFifo(sess, fifo_name, &fifo_num);
     test_status(sts);
 
@@ -101,7 +104,7 @@ int init(char* bitfile, char *resource) {
     sts = NiFpga_ConfigureFifo2(sess, fifo_num, depth_req, depth_act);
     test_status(sts);
     if(depth_req != *depth_act) {
-        printf("requested depth = %lu, actual depth = %lu\n", depth_req, *depth_act);
+        syslog(LOG_USER, "requested depth = %lu, actual depth = %lu\n", depth_req, *depth_act);
         rc = -2;
         goto bail;
     }
@@ -125,9 +128,9 @@ int init(char* bitfile, char *resource) {
     test_status(sts);
     sts = NiFpga_ReadBool(sess, reg_offs, &ni_bool);
     test_status(sts);
-    printf("ACQ_Armed_RB = %d\n", ni_bool);
+    syslog(LOG_USER, "ACQ_Armed_RB = %d\n", ni_bool);
     if(ni_bool == 0) {
-        printf("Could not arm acquisition\n");
+        syslog(LOG_USER, "Could not arm acquisition\n");
         rc = -3;
         goto bail;
     }
@@ -136,7 +139,7 @@ int init(char* bitfile, char *resource) {
     uint16_t ni_u16 = 0;
     sts = NiFpga_ReadU16(sess, reg_offs, &ni_u16);
     test_status(sts);
-    printf("ACQ_Record Index_RB initial value = %hd\n", ni_u16);
+    syslog(LOG_USER, "ACQ_Record Index_RB initial value = %hd\n", ni_u16);
 
     sts = NiFpga_FindRegister(sess, "Trig_Once", &reg_offs);
     test_status(sts);
@@ -146,14 +149,15 @@ int init(char* bitfile, char *resource) {
 
 bail:
     sts = NiFpga_StopFifo(sess, fifo_num);
-    printf("NiFpga_Status = %d\n", sts);
+    syslog(LOG_USER, "NiFpga_Status = %d\n", sts);
     sts = NiFpga_ReleaseFifoElements(sess, fifo_num, *depth_act);
-    printf("NiFpga_Status = %d\n", sts);
+    syslog(LOG_USER, "NiFpga_Status = %d\n", sts);
     sts = NiFpga_Close(sess, NiFpga_CloseAttribute_NoResetIfLastSession);
-    printf("NiFpga_Status = %d\n", sts);
+    syslog(LOG_USER, "NiFpga_Status = %d\n", sts);
     sts = NiFpga_Finalize();
-    printf("NiFpga_Status = %d\n", sts);
+    syslog(LOG_USER, "NiFpga_Status = %d\n", sts);
 
+    closelog();
     return rc;
 
 }
