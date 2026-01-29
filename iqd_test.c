@@ -7,7 +7,7 @@
 #include <unistd.h>
 #include <syslog.h>
 
-#include "test2.h"
+#include "test3.h"
 #include "NiFpga.h"
 
 
@@ -18,6 +18,16 @@ static void test_status(NiFpga_Status sts) {
 }
 
 static NiFpga_Session sess = 0;
+
+void lib_init(void) {
+    openlog(NULL, LOG_PID | LOG_CONS, LOG_USER);
+    syslog(LOG_USER, "%s loaded\n", __FILE__);
+}
+
+void lib_fini(void) {
+    syslog(LOG_USER, "%s unloading\n", __FILE__);
+    closelog();
+}
 
 int init(char* bitfile, char *resource) {
     /* data extraction
@@ -47,8 +57,6 @@ int init(char* bitfile, char *resource) {
     */
 
     int rc = 0;
-
-    openlog(NULL, LOG_PID | LOG_CONS, LOG_USER);
 
     if(bitfile == NULL || resource == NULL) {
         syslog(LOG_USER, "bitfile and resource args must be non-null\n");
@@ -157,7 +165,6 @@ bail:
     sts = NiFpga_Finalize();
     syslog(LOG_USER, "NiFpga_Status = %d\n", sts);
 
-    closelog();
     return rc;
 
 }
