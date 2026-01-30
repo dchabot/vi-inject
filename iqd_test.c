@@ -20,12 +20,12 @@ static void test_status(NiFpga_Status sts) {
 static NiFpga_Session sess = 0;
 
 void lib_init(void) {
-    openlog(NULL, LOG_PID | LOG_CONS, LOG_USER);
-    syslog(LOG_USER, "%s loaded\n", __FILE__);
+    openlog(NULL, LOG_NDELAY | LOG_PID | LOG_CONS, LOG_USER);
+    syslog(LOG_INFO, "%s loaded\n", __FILE__);
 }
 
 void lib_fini(void) {
-    syslog(LOG_USER, "%s unloading\n", __FILE__);
+    syslog(LOG_INFO, "%s unloading\n", __FILE__);
     closelog();
 }
 
