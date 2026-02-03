@@ -22,7 +22,7 @@ void lib_fini(void) {
     closelog();
 }
 
-static char* printBinary(uint64_t num) {
+static void printBinary(uint64_t num) {
     char d[sizeof(uint64_t) + 1] = {0};
 
     for (int i = sizeof(uint64_t) * 8 - 1; i >= 0; i--) {
@@ -30,7 +30,7 @@ static char* printBinary(uint64_t num) {
         d[i] =  (num >> i) & 1;
     }
     
-    return d;
+    syslog(LOG_INFO, "%s\n", d);
 }
 
 void print_info(unsigned long int D) {
@@ -43,7 +43,7 @@ void print_info(unsigned long int D) {
     I = S_I(D);
     Q = S_Q(D);
 
-    syslog(LOG_INFO, "%s\n", printBinary(D));
+    printBinary(D);
     syslog(LOG_INFO, "card=%u rec=%u samp=%u I=%i Q=%i\n", card,rec,samp,I,Q );
 }
 
