@@ -3,6 +3,8 @@
  */
 
 #include <stdio.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <syslog.h>
@@ -20,10 +22,11 @@ void lib_fini(void) {
     closelog();
 }
 
-int init(char* bitfile, char *resource) {
+int init(unsigned long int* data,  unsigned int len) {
 
     int rc = 0;
-    syslog(LOG_INFO, "Entering %s\n", __func__); 
+    syslog(LOG_INFO, "data: %lu, len: %u\n", data, len);
+    
     return rc;
 
 }
