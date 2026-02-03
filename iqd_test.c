@@ -22,10 +22,10 @@ void lib_fini(void) {
     closelog();
 }
 
-static void printBinary(uint64_t num) {
-    char d[sizeof(uint64_t) + 1] = {0};
+static void printBinary(unsigned long int num) {
+    char d[sizeof(unsigned long int) + 1] = {0};
 
-    for (int i = sizeof(uint64_t) * 8 - 1; i >= 0; i--) {
+    for (int i = sizeof(unsigned long int) * 8 - 1; i >= 0; i--) {
         // Use bitwise right shift (>>) and bitwise AND (&) to check each bit
         d[i] =  (num >> i) & 1;
     }
