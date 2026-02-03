@@ -16,8 +16,8 @@
 #define REC_IDX(D) (D >> 50) & REC_MASK
 #define SAMP_IDX(D) (D >> 40) & SIDX_MASK
 
-#define S_Q(D) (D >> 20) & DATA_MASK
-#define S_I(D) (D & DATA_MASK)
+#define S_Q(D) (int32_t)((((D >> 20) & DATA_MASK) << 12) >> 12)
+#define S_I(D) (int32_t)(((D & DATA_MASK) << 12) >> 12)
 
 void print_info(unsigned long int D);
 int init(long unsigned int* data, unsigned int len);
