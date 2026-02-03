@@ -1,22 +1,23 @@
 /*
  * Bit-packed U64:
     63:60 Card Number (1-12), 4-bit unsigned
-    59:46 Record Index, 14-bit unsigned
-    45:36 Sample Index, 10-bit unsigned
-    35:18 ADC-Q, 18-bit signed
-    17:0 ADC-I, 18-bit signed
-*/
-#define ADC_MASK ((1<<2) - 1)
-#define REC_MASK ((1<<14) - 1)
+    59:50 Record Index, 10-bit unsigned
+    49:40 Sample Index, 10-bit unsigned
+    39:20 ADC-Q, 20-bit signed
+    19:0 ADC-I, 20-bit signed
+ *
+ */
+#define CARD_MASK ((1<<4) - 1)
+#define REC_MASK ((1<<10) - 1)
 #define SIDX_MASK ((1<<10) - 1)
-#define DATA_MASK ((1<<18) - 1)
+#define DATA_MASK ((1<<20) - 1)
 
-#define ADC_IDX(D) (D >> 60) & ADC_MASK
-#define REC_IDX(D) (D >> 46) & REC_MASK
-#define SAMP_IDX(D) (D >> 36) & SIDX_MASK
+#define CARD_IDX(D) (D >> 60) & CARD_MASK
+#define REC_IDX(D) (D >> 50) & REC_MASK
+#define SAMP_IDX(D) (D >> 40) & SIDX_MASK
 
-#define S_I(D) (D >> 18) & DATA_MASK
-#define S_Q(D) (D & DATA_MASK)
+#define S_Q(D) (D >> 20) & DATA_MASK
+#define S_I(D) (D & DATA_MASK)
 
 void print_info(unsigned long int D);
 int init(long unsigned int* data, unsigned int len);

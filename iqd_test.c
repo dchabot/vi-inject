@@ -23,16 +23,16 @@ void lib_fini(void) {
 }
 
 void print_info(unsigned long int D) {
-    uint32_t adc, rec, samp;
+    uint32_t card, rec, samp;
     int32_t I, Q;
 
-    adc = ADC_IDX(D);
+    card = CARD_IDX(D);
     rec = REC_IDX(D);
     samp = SAMP_IDX(D);
     I = S_I(D);
     Q = S_Q(D);
 
-    syslog(LOG_INFO, "adc=%u rec=%u samp=%u I=%i Q=%i\n", adc,rec,samp,I,Q );
+    syslog(LOG_INFO, "card=%u rec=%u samp=%u I=%i Q=%i\n", card,rec,samp,I,Q );
 }
 
 int init(unsigned long int* data,  unsigned int len) {
