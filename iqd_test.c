@@ -22,6 +22,7 @@ void lib_fini(void) {
     closelog();
 }
 
+/*
 static void printBinary(unsigned long int num) {
     char d[sizeof(unsigned long int) + 1] = {0};
 
@@ -32,6 +33,7 @@ static void printBinary(unsigned long int num) {
     
     syslog(LOG_INFO, "%s\n", d);
 }
+*/
 
 void print_info(unsigned long int D) {
     uint32_t card, rec, samp;
@@ -43,7 +45,8 @@ void print_info(unsigned long int D) {
     I = S_I(D);
     Q = S_Q(D);
 
-    printBinary(D);
+    //printBinary(D);
+    syslog(LOG_INFO, "word = 0x%lx\n", D);
     syslog(LOG_INFO, "card=%u rec=%u samp=%u I=%i Q=%i\n", card,rec,samp,I,Q );
 }
 
