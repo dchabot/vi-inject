@@ -54,7 +54,7 @@ void print_info(unsigned long int D) {
 int consume(unsigned long int* data,  unsigned int len) {
 
     int rc = 0;
-    fprintf(logf, "%s: \n", __func__);
+    fprintf(logf, "# %s: \n", __func__);
     
     for(int i = 0; i < len; i++) {
 
