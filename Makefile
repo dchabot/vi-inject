@@ -7,4 +7,4 @@ testbits: iqdtest test_bits.c
 all: iqdtest testbits
 
 clean: 
-	rm *.so testbits
+	rm -vf *.so testbits
