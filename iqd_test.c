@@ -9,31 +9,20 @@
 #include <unistd.h>
 #include <syslog.h>
 
-#include "test4.h"
+#include "iqd_test.h"
 
+static FILE* logf;
 
 void lib_init(void) {
-    openlog(NULL, LOG_NDELAY | LOG_PID | LOG_CONS, LOG_USER);
-    syslog(LOG_INFO, "%s loaded\n", __FILE__);
+    /* FIXME: source path from env, then default */
+    logf = fopen("/home/cxfeldev/iqd_test.log", "a");
+    fprintf(logf, "# %s loaded\n", __FILE__);
 }
 
 void lib_fini(void) {
-    syslog(LOG_INFO, "%s unloading\n", __FILE__);
-    closelog();
+    fprintf(logf, "# %s unloading\n", __FILE__);
+    fclose(logf);
 }
-
-/*
-static void printBinary(unsigned long int num) {
-    char d[sizeof(unsigned long int) + 1] = {0};
-
-    for (int i = sizeof(unsigned long int) * 8 - 1; i >= 0; i--) {
-        // Use bitwise right shift (>>) and bitwise AND (&) to check each bit
-        d[i] =  (num >> i) & 1;
-    }
-    
-    syslog(LOG_INFO, "%s\n", d);
-}
-*/
 
 void print_info(unsigned long int D) {
     uint32_t card, rec, samp;
@@ -45,15 +34,14 @@ void print_info(unsigned long int D) {
     I = S_I(D);
     Q = S_Q(D);
 
-    //printBinary(D);
-    syslog(LOG_INFO, "word = 0x%lx\n", D);
-    syslog(LOG_INFO, "card=%u rec=%u samp=%u I=%i Q=%i\n", card,rec,samp,I,Q );
+    fprintf(logf, "# word = 0x%lx\n", D);
+    fprintf(logf, "# card=%u rec=%u samp=%u I=%i Q=%i\n", card,rec,samp,I,Q );
 }
 
 int init(unsigned long int* data,  unsigned int len) {
 
     int rc = 0;
-    syslog(LOG_INFO, "%s: \n", __func__);
+    fprintf(logf, "%s: \n", __func__);
     
     for(int i = 0; i < len; i++) {
 
