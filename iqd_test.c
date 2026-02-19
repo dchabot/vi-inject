@@ -27,7 +27,7 @@ void lib_init(void) {
     }
 
     /* FIXME: source path from env, then default */
-    logf = fopen("/home/cxfeldev/iqd_test.log", "a");
+    logf = fopen("/home/admin/iqd_test.log", "a");
     fprintf(logf, "# %s loaded\n", __FILE__);
 }
 
