@@ -20,7 +20,7 @@
 #define S_I(D) (((int32_t)(D & DATA_MASK) << 12) >> 12)
 
 void print_info(unsigned long int D);
-int init(long unsigned int* data, unsigned int len);
+int consume(long unsigned int* data, unsigned int len);
 
 void lib_init(void) __attribute__((constructor));
 void lib_fini(void) __attribute__((destructor));
