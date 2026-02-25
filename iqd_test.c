@@ -53,8 +53,8 @@ void lib_init(void) {
         }
 
         sockaddr.sin_family = AF_INET;
-        inet_pton(AF_INET, hostaddr, &(sockaddr.sin_addr));
-        sockaddr.sin_port = hostport;
+        sockaddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+        sockaddr.sin_port = htons(24742);
     }
 
     char* logpath = getenv("IQD_LOGFILE");
