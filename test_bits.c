@@ -15,8 +15,8 @@ int main(void) {
     Q = S_Q(data);
 
     printf("word = 0x%lx\n", data);
-    printf("card=%u rec=%u samp=%u I=%i Q=%i\n", card,rec,samp,I,Q );
+    printf("card=%u rec=%u samp=%u I=%i Q=%i\n", card, rec,samp, I, Q);
 
-    consume(&data, sizeof(data));
+    consume(&data, 1);
     return 0;
 }

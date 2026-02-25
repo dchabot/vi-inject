@@ -7,6 +7,8 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <limits.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -16,19 +18,53 @@
 static FILE* logf;
 static int sock;
 static struct sockaddr_in sockaddr;
+static const char* default_hostaddr = "127.0.0.1";
+static const uint16_t default_hostport = 24742;
+static const char* default_logfile = "/tmp/iqd.log";
+
 
 void lib_init(void) {
+    char *envhost = getenv("IQD_ENDPT"), *hostaddr;
+    uint16_t hostport;
+
     /* FIXME: can't assume success here */
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     if(sock) {
+        if(envhost != NULL) {
+            hostaddr = strsep(&envhost, ":");
+            if(envhost != NULL) {
+                /* Delim found. envhost now points past delim */
+                uint32_t port;
+                port = strtoul(envhost, NULL, 10);
+
+                if(port < USHRT_MAX && port > 1024)
+                    hostport = (uint16_t)port;
+                else
+                    hostport = 24742;
+            }
+            else {
+                /* FIXME: no token (:) found */
+                ;
+            }
+        }
+        else {
+            hostaddr = (char*)default_hostaddr;
+            hostport = default_hostport;
+        }
+
         sockaddr.sin_family = AF_INET;
-        inet_pton(AF_INET, "10.139.4.51", &(sockaddr.sin_addr));
-        sockaddr.sin_port = htons(24742);
+        inet_pton(AF_INET, hostaddr, &(sockaddr.sin_addr));
+        sockaddr.sin_port = hostport;
     }
 
-    /* FIXME: source path from env, then default */
-    logf = fopen("/home/admin/iqd_test.log", "a");
-    fprintf(logf, "# %s loaded\n", __FILE__);
+    char* logpath = getenv("IQD_LOGFILE");
+    if(logpath != NULL)
+        logf = fopen(logpath, "a");
+    else
+        logf = fopen(default_logfile, "a");
+
+    fprintf(logf, "# %s loaded. Using ip4 addr: %s:%hd\n",
+            __FILE__, hostaddr, hostport);
 }
 
 void lib_fini(void) {
@@ -62,7 +98,7 @@ int consume(unsigned long int* data,  unsigned int len) {
             print_info(data[i]);
         }
 
-        if(i == (len - 1)) {
+        if(len > 1 && i == (len - 1)) {
             print_info(data[i]);
         }
     }
