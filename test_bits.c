@@ -8,6 +8,8 @@ int main(void) {
     uint32_t card, rec, samp;
     int32_t I, Q;
 
+    config(NULL, 2222u, NULL);
+
     card = CARD_IDX(data);
     rec = REC_IDX(data);
     samp = SAMP_IDX(data);
