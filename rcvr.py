@@ -2,8 +2,8 @@ import socket
 import sys
 
 # Define the IP and port to listen on
-UDP_IP = "127.0.0.1"
-UDP_PORT = 2222
+UDP_IP = "10.139.4.51"
+UDP_PORT = 5555
 
 # Create a UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

@@ -8,7 +8,7 @@ int main(void) {
     uint32_t card, rec, samp;
     int32_t I, Q;
 
-    config(NULL, 2222u, NULL);
+    config("10.139.4.51", 5555u, NULL);
 
     card = CARD_IDX(data);
     rec = REC_IDX(data);
