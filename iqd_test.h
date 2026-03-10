@@ -19,9 +19,9 @@
 #define S_I(D) (((int32_t)((D >> 20) & DATA_MASK) << 12) >> 12)
 #define S_Q(D) (((int32_t)(D & DATA_MASK) << 12) >> 12)
 
-//void print_info(unsigned long int D);
-//int config(const char* addr, const unsigned short port, const char* logpath);
-//int consume(long unsigned int* data, unsigned int len);
+void print_info(unsigned long int D);
+int config(const char* addr, const unsigned short port, const char* logpath);
+int consume(long unsigned int* data, unsigned int len);
 
-//void lib_init(void) __attribute__((constructor));
-//void lib_fini(void) __attribute__((destructor));
+void lib_init(void) __attribute__((constructor));
+void lib_fini(void) __attribute__((destructor));
