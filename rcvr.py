@@ -19,5 +19,6 @@ with open(sys.argv[1], 'wb') as F:
         data, addr = sock.recvfrom(1500) # buffer size is 1500 bytes
         print(f"Received {len(data)} bytes from {addr}")
         F.write(data)
+        F.flush()
 
 

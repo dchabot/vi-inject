@@ -162,8 +162,8 @@ int consume(unsigned long int* data,  unsigned int len) {
 
     fprintf(logf, "# %s(): \n", __func__);
     
-    //if(body_bytes%block_size) // required payload granularity
-    //    return ALIGN;
+    if(body_bytes%block_size) // required payload granularity
+        return ALIGN;
 
     size_t npacket = body_bytes/effective_mtu;
     if(body_bytes%effective_mtu)
