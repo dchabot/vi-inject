@@ -1,6 +1,12 @@
-/* Copyright 2025 Osprey DCS
+/* Copyright 2026 Osprey DCS
  * All rights reserved
  */
+#ifndef _GNU_SOURCE
+#  define _GNU_SOURCE
+#endif
+#ifndef __GNUC__
+#  error GCC/clang language extensions used
+#endif
 
 #include <stdio.h>
 #include <stdint.h>
@@ -9,12 +15,20 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <limits.h>
-#include <arpa/inet.h>
+#include <sys/param.h> // min/max
+
+#include <netinet/ip.h>
+#include <netinet/udp.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <arpa/inet.h>
+//#include <netinet/in.h>
 
 #include "iqd_test.h"
+
+#ifndef __linux__
+#  error Linux specific
+#endif
+
 
 static FILE* logf;
 static int sock;
@@ -22,6 +36,15 @@ static struct sockaddr_in sockaddr;
 static const char* default_hostaddr = "127.0.0.1";
 static const uint16_t default_hostport = 24742;
 static const char* default_logfile = "/tmp/iqd.log";
+static const size_t block_size = 4*sizeof(uint64_t);
+#if ((block_size & (block_size-1)))
+    #error
+#endif
+
+// estimate available ethernet payload our use to avoid fragmentation
+// assume common 1500 bytes, less minimum size for IPv4 and UDP headers.
+// Then round down multiple of uint64_t
+static const size_t effective_mtu = (1500u - sizeof(struct iphdr) - sizeof(struct udphdr)) &~(block_size-1u);
 
 
 void lib_init(void) {
@@ -117,29 +140,83 @@ int config(const char* addr, const unsigned short port, const char* logpath) {
     return 0;
 }
 
+/*
+enum struct Err {
+    // positive values are errno
+    Ok = 0,
+    Except = -1,
+    Align = -2,
+    NoProg = -3,
+    TruncUDP = -4,
+};
+*/
+#define OK 0
+#define EXCEPT -1
+#define ALIGN -2
+#define NOPROG -3
+#define TRUNCUDP -4
+
 int consume(unsigned long int* data,  unsigned int len) {
 
-    int rc = 0;
+    size_t body_bytes = len * sizeof(unsigned long);
+
     fprintf(logf, "# %s(): \n", __func__);
     
-    for(int i = 0; i < len; i++) {
+    //if(body_bytes%block_size) // required payload granularity
+    //    return ALIGN;
 
-        if(i == 0) {
-            print_info(data[i]);
-        }
+    size_t npacket = body_bytes/effective_mtu;
+    if(body_bytes%effective_mtu)
+        npacket++;
 
-        if(len > 1 && i == (len - 1)) {
-            print_info(data[i]);
+    struct mmsghdr mhdrs[npacket]; // variable stack array, GNU extension
+    struct iovec vecs[npacket];
+
+    for(size_t n=0; n<npacket; n++) {
+        size_t tosend = MIN(body_bytes, effective_mtu);
+
+        struct iovec vec = vecs[n];
+        vec.iov_base = (void*)data;
+        vec.iov_len = tosend;
+
+        mhdrs[n].msg_len = 0;
+        struct msghdr *hdr = &(mhdrs[n].msg_hdr);
+        hdr->msg_control = NULL;
+        hdr->msg_controllen = 0u;
+        hdr->msg_name = &sockaddr;
+        hdr->msg_namelen = sizeof(sockaddr);
+        hdr->msg_iov = &vec;
+        hdr->msg_iovlen = 1;
+        hdr->msg_flags = 0;
+
+        body_bytes -= tosend;
+        data += tosend;
+    }
+
+    struct mmsghdr *mnext = mhdrs;
+
+    while(npacket) {
+        int ret = sendmmsg(sock, mnext, npacket, 0);
+        if(ret<0) {
+            perror("sendmmsg");
+            return errno;
+
+        } else if(ret==0) {
+            return NOPROG; // block call should always queue at least one
+
+        } else {
+            // paranoia?
+            for(size_t i=0; i<ret; i++) {
+                struct mmsghdr mhdr = mhdrs[i];
+
+                if(mhdr.msg_len < mhdr.msg_hdr.msg_iov->iov_len)
+                    return TRUNCUDP; // incomplete send with UDP should not be possible
+            }
+            mnext += ret;
+            npacket -= ret;
+            // retry
         }
     }
 
-    ssize_t nbytes = sendto(sock, data, len * sizeof(unsigned long), 0,
-                            (const struct sockaddr *)&sockaddr, sizeof(sockaddr));
-    if(nbytes < 0)
-        fprintf(logf, "# %s(): sendto() error: %s\n", __func__, strerror(errno));
-    else if(nbytes != len*sizeof(unsigned long))
-        fprintf(logf, "# %s() error: sent %ld of %ld bytes\n",
-                __func__, nbytes, len*sizeof(unsigned long));
-
-    return rc;
+    return OK;
 }
