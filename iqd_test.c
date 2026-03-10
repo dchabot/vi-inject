@@ -137,7 +137,7 @@ int config(const char* addr, const unsigned short port, const char* logpath) {
     fprintf(logf, "# %s(): using ip4 addr: %s:%hd\n",
             __func__, inet_ntoa(sockaddr.sin_addr), ntohs(sockaddr.sin_port));
 
-    return 0;
+    return 1;
 }
 
 /*
@@ -168,6 +168,10 @@ int consume(unsigned long int* data,  unsigned int len) {
     size_t npacket = body_bytes/effective_mtu;
     if(body_bytes%effective_mtu)
         npacket++;
+
+    fprintf(logf, "# %s(): npacket size = %lu\n", __func__, npacket);
+    print_info(data[0]);
+    print_info(data[len-1]);
 
     struct mmsghdr mhdrs[npacket]; // variable stack array, GNU extension
     struct iovec vecs[npacket];
