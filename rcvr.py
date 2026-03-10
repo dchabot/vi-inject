@@ -13,12 +13,20 @@ sock.bind((UDP_IP, UDP_PORT))
 
 print(f"UDP server listening on {UDP_IP}:{UDP_PORT}")
 
-with open(sys.argv[1], 'wb') as F:
+L = 0
+try:
+    F = open(sys.argv[1], 'wb');
+    # Receive data and the address of the sender
     while True:
-        # Receive data and the address of the sender
         data, addr = sock.recvfrom(1500) # buffer size is 1500 bytes
-        print(f"Received {len(data)} bytes from {addr}")
+        L += len(data)
+        #print(f"Received {len(data)} bytes from {addr}")
         F.write(data)
-        F.flush()
+except KeyboardInterrupt:
+    print('Caught Ctrl-C. Exiting...')
+finally:
+    F.flush()
+    F.close()
 
+print(f"Received {L} bytes")
 
