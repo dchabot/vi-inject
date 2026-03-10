@@ -20,6 +20,11 @@ int main(void) {
     printf("word = 0x%lx\n", dw);
     printf("card=%u rec=%u samp=%u I=%i Q=%i\n", card, rec,samp, I, Q);
 
-    uint64_t data[] = {dw, dw, dw, dw};
-    return consume(data, sizeof(data)/sizeof(data[0]));
+    // make some easily verifiable data
+    uint64_t data[(1<<15)] = {0};
+    size_t dlen = sizeof(data)/sizeof(data[0]);
+    for(int i=0; i<dlen; i++)
+       data[i] = i;
+
+    return consume(data, dlen);
 }

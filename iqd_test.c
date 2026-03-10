@@ -158,10 +158,9 @@ enum struct Err {
 
 int consume(unsigned long int* data,  unsigned int len) {
 
+    uint8_t *cdata = (uint8_t*)data;
     size_t body_bytes = len * sizeof(unsigned long);
 
-    fprintf(logf, "# %s(): \n", __func__);
-    
     if(body_bytes%block_size) // required payload granularity
         return ALIGN;
 
@@ -169,7 +168,7 @@ int consume(unsigned long int* data,  unsigned int len) {
     if(body_bytes%effective_mtu)
         npacket++;
 
-    fprintf(logf, "# %s(): npacket size = %lu\n", __func__, npacket);
+    fprintf(logf, "# %s(): fragmenting to npackets = %lu\n", __func__, npacket);
     print_info(data[0]);
     print_info(data[len-1]);
 
@@ -179,22 +178,20 @@ int consume(unsigned long int* data,  unsigned int len) {
     for(size_t n=0; n<npacket; n++) {
         size_t tosend = MIN(body_bytes, effective_mtu);
 
-        struct iovec vec = vecs[n];
-        vec.iov_base = (void*)data;
-        vec.iov_len = tosend;
+        vecs[n].iov_base = (void*)cdata;
+        vecs[n].iov_len = tosend;
 
         mhdrs[n].msg_len = 0;
-        struct msghdr *hdr = &(mhdrs[n].msg_hdr);
-        hdr->msg_control = NULL;
-        hdr->msg_controllen = 0u;
-        hdr->msg_name = &sockaddr;
-        hdr->msg_namelen = sizeof(sockaddr);
-        hdr->msg_iov = &vec;
-        hdr->msg_iovlen = 1;
-        hdr->msg_flags = 0;
+        mhdrs[n].msg_hdr.msg_control = NULL;
+        mhdrs[n].msg_hdr.msg_controllen = 0u;
+        mhdrs[n].msg_hdr.msg_name = &sockaddr;
+        mhdrs[n].msg_hdr.msg_namelen = sizeof(sockaddr);
+        mhdrs[n].msg_hdr.msg_iov = &vecs[n];
+        mhdrs[n].msg_hdr.msg_iovlen = 1;
+        mhdrs[n].msg_hdr.msg_flags = 0;
 
         body_bytes -= tosend;
-        data += tosend;
+        cdata += tosend;
     }
 
     struct mmsghdr *mnext = mhdrs;
