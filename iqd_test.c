@@ -24,6 +24,7 @@
 //#include <netinet/in.h>
 
 #include "iqd_test.h"
+#include "version.h"
 
 #ifndef __linux__
 #  error Linux specific
@@ -114,7 +115,7 @@ void print_info(unsigned long int D) {
     fprintf(logf, "# card=%u rec=%u samp=%u I=%i Q=%i\n", card,rec,samp,I,Q );
 }
 
-int config(const char* addr, const unsigned short port, const char* logpath) {
+uint32_t config(const char* addr, const unsigned short port, const char* logpath) {
     // FIXME: can't assume success here
     sock = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -137,7 +138,7 @@ int config(const char* addr, const unsigned short port, const char* logpath) {
     fprintf(logf, "# %s(): using ip4 addr: %s:%hd\n",
             __func__, inet_ntoa(sockaddr.sin_addr), ntohs(sockaddr.sin_port));
 
-    return 1;
+    return GIT_HASH;
 }
 
 /*

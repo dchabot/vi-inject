@@ -20,7 +20,7 @@
 #define S_Q(D) (((int32_t)(D & DATA_MASK) << 12) >> 12)
 
 void print_info(unsigned long int D);
-int config(const char* addr, const unsigned short port, const char* logpath);
+uint32_t config(const char* addr, const unsigned short port, const char* logpath);
 int consume(long unsigned int* data, unsigned int len);
 
 void lib_init(void) __attribute__((constructor));

@@ -8,7 +8,8 @@ int main(void) {
     uint32_t card, rec, samp;
     int32_t I, Q;
 
-    config("10.139.4.51", 5555u, NULL);
+    uint32_t vers = config("10.139.4.51", 5555u, NULL);
+    printf("version = 0x%x\n", vers);
 
     card = CARD_IDX(dw);
     rec = REC_IDX(dw);
