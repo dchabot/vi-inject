@@ -52,14 +52,18 @@ if __name__ == '__main__':
             print_info(buf[n])
         
         if len(sys.argv) > 2:
-            I = [ ]
-            Q = [ ]
-            for w in buf[:int(sys.argv[2])]:
-                if card_idx(w) == int(sys.argv[3]):
-                    I.append(samp_i(w))
-                    Q.append(samp_q(w))
+            I = [[] for _ in range(4)]
+            Q = [[] for _ in range(4)]
+            for c in buf[:int(sys.argv[2])]:
+                if card_idx(c) == int(sys.argv[3]):
+                    r = rec_idx(c)
+                    I[r].append(samp_i(c))
+                    Q[r].append(samp_q(c))
 
-            plt.plot(I, label=f'I')
-            plt.plot(Q, label=f'Q')
+        card = int(sys.argv[3])
+        for n in range(4):
+            plt.figure()
+            plt.plot(I[n], label=f'I{card}.{n}')
+            plt.plot(Q[n], label=f'Q{card}.{n}')
             plt.legend()
-            plt.show()
+        plt.show()
