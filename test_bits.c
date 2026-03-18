@@ -4,7 +4,9 @@
 
 
 int main(void) {
-    uint64_t dw = (0x0FUL<<60) | (0x03UL << 50) | (0xA0UL << 40) | ((int32_t)(-1025) << 20) | ((int32_t)(10));
+    uint64_t c = (0x0AUL << 60), r = (0x0BUL << 50), s = (0x0CUL << 40);
+    uint64_t i = ((-1025UL & ((1<<20) - 1)) << 20), q = (10UL & ((1<<20) - 1));
+    uint64_t dw = c | r | s | i | q;
     uint32_t card, rec, samp;
     int32_t I, Q;
 
@@ -17,7 +19,7 @@ int main(void) {
     I = S_I(dw);
     Q = S_Q(dw);
 
-    printf("word = 0x%lx\n", dw);
+    printf("word = 0x%016lx\n", dw);
     printf("card=%u rec=%u samp=%u I=%i Q=%i\n", card, rec,samp, I, Q);
 
     // make some easily verifiable data
