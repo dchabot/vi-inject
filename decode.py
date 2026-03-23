@@ -1,4 +1,5 @@
 import sys
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -39,31 +40,72 @@ def samp_q(d):
 
 def print_info(B):
     c,r,s,i,q = card_idx(B), rec_idx(B), samp_idx(B), samp_i(B), samp_q(B)
-    print(f'B=0x{B:016x}, {c=}, {r=}, {s=}, {i=}, {q=}')
+    print(f'B:0x{B:016x}, c={c:d}, r={r:d}, s={s:d}, I={i:d}, Q={q:d}')
 
 
-if __name__ == '__main__':
-    with open(sys.argv[1], 'rb') as F:
+def main():
+    P = argparse.ArgumentParser()
+    P.add_argument('-c', '--card', dest='card', type=int, default=0)
+    P.add_argument('-l', '--limit', dest='limit', type=int, default=None)
+    P.add_argument('-r', '--record', dest='record', type=int, default=None)
+    P.add_argument('-v', '--verbose', dest='verbose', action='store_true', default=False)
+    P.add_argument('file', type=str, nargs='?', default='')
+
+    args = P.parse_args()
+
+    with open(args.file, 'rb') as F:
         B = F.read()
         buf = np.frombuffer(B, dtype='<u8')
         print(f'{buf.size=} words, {buf.size * 8} bytes')
 
-        for n in range(25):
-            print_info(buf[n])
-        
-        if len(sys.argv) > 2:
-            I = [[] for _ in range(4)]
-            Q = [[] for _ in range(4)]
-            for c in buf[:int(sys.argv[2])]:
-                if card_idx(c) == int(sys.argv[3]):
-                    r = rec_idx(c)
-                    I[r].append(samp_i(c))
-                    Q[r].append(samp_q(c))
+        Nch = 4
+        if args.card:
+            I = [[] for _ in range(Nch)]
+            Q = [[] for _ in range(Nch)]
+            prev_rec = 0
+            prev_samp = 0
+            ch_idx = 0
 
-        card = int(sys.argv[3])
-        for n in range(4):
-            plt.figure()
-            plt.plot(I[n], label=f'I{card}.{n}')
-            plt.plot(Q[n], label=f'Q{card}.{n}')
-            plt.legend()
-        plt.show()
+            for w in buf[:args.limit]:
+                # ignore null data words
+                if w == 0:
+                    continue
+
+                if card_idx(w) == args.card:
+                    r = rec_idx(w)
+                    if args.record is not None and r != args.record:
+                        continue 
+                    s = samp_idx(w)
+
+                    I[ch_idx%Nch].append(samp_i(w))
+                    Q[ch_idx%Nch].append(samp_q(w))
+                    if args.verbose:
+                        print_info(w)
+                    ch_idx += 1
+
+            for i in range(Nch):
+                print(f'Size of I[{i}] = {len(I[i])}, Q[{i}] = {len(Q[i])}')
+
+            for n in range(Nch):
+                #plt.figure()
+                if args.record is not None:
+                    max_samp = 1 << 9
+                    title = f'Card {args.card}, Record {args.record}'
+                else:
+                    max_samp = None
+                    title = None
+
+                plt.subplot(Nch, 1, n + 1)
+                plt.plot(I[n][:max_samp], label=f'I{args.card}.{n}')
+                plt.plot(Q[n][:max_samp], label=f'Q{args.card}.{n}')
+
+                plt.suptitle(title)
+                plt.legend()
+            plt.show()
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
