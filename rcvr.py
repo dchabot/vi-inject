@@ -2,7 +2,7 @@ import socket
 import sys
 
 # Define the IP and port to listen on
-UDP_IP = "10.139.4.51"
+UDP_IP = "169.254.237.80"
 UDP_PORT = 5555
 
 # Create a UDP socket
